@@ -1,5 +1,5 @@
 const Users = require("../models/user");
-const Status = require("../utils/statucCodes");
+const Status = require("../utils/statusCodes");
 const { ValidationError, CastError } = require("mongoose").Error;
 
 module.exports.getUsers = (req, res) => {

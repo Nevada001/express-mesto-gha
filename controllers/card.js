@@ -1,6 +1,6 @@
 const Card = require("../models/card");
-const Status = require("../utils/statucCodes");
-const { ValidationError, CastError, DocumentNotFoundError } =
+const Status = require("../utils/statusCodes");
+const { ValidationError, CastError } =
   require("mongoose").Error;
 module.exports.getCards = (req, res) => {
   Card.find({})
