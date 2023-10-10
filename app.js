@@ -6,6 +6,7 @@ const userRoutes = require('./routes/users')
 const app = express();
 const mongoose = require('mongoose');
 const cardsRoutes = require('./routes/cards');
+const helmet = require('helmet')
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 app.use((req, res, next) => {
@@ -14,6 +15,7 @@ app.use((req, res, next) => {
   };
   next();
 });
+app.use(helmet())
 app.use(bodyParser.json())
 app.use('/users', userRoutes)
 app.use('/cards', cardsRoutes)

@@ -33,7 +33,7 @@ module.exports.getUsersById = (req, res) => {
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   Users.create({ name, about, avatar })
-    .then((users) => res.send(users))
+    .then((users) => res.status(Status.CREATED).send(users))
     .catch((err) => {
       if (err instanceof ValidationError) {
         return res
