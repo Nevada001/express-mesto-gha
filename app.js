@@ -1,4 +1,5 @@
 const express = require('express');
+const Status = require('./utils/statusCodes')
 const bodyParser = require('body-parser')
 const { PORT = 3000} = process.env;
 const userRoutes = require('./routes/users')
@@ -14,7 +15,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(bodyParser.json())
-app.use('*', (req, res) => res.status(Statuses.NOT_FOUND).send({ message: 'Введенный ресурс не найден' }));
+app.use('*', (req, res) => res.status(Status.NOT_FOUND).send({ message: 'Введенный ресурс не найден' }));
 app.use('/users', userRoutes)
 app.use('/cards', cardsRoutes)
 
