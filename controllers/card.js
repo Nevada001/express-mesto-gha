@@ -11,7 +11,7 @@ module.exports.getCards = (req, res) => {
 
 module.exports.getCardsByIdAndRemove = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((cards) => res.send(cards))
+    .then((cards) => res.status(Status.OK_REQUEST).send(cards))
     .catch((err) => {
       if (err instanceof CastError) {
         return res
@@ -47,16 +47,20 @@ module.exports.likeCard = (req, res) =>
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true }
   )
-    .then((card) => res.send(card))
+    .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
-      if (err instanceof CastError) {
+      if (err instanceof ValidationError) {
         return res
           .status(Status.NOT_FOUND)
+          .send({ message: "Произошла ошибка" });
+      }
+      if (err instanceof CastError) {
+        return res
+          .status(Status.BAD_REQUEST)
           .send({ message: "Карточка не найдена" });
       }
-      return res
-        .status(Status.BAD_REQUEST)
-        .send({ message: "Произошла ошибка" });
+
+      return res.status(Status.SERVER_ERROR);
     });
 
 module.exports.dislikeCard = (req, res) =>
@@ -65,14 +69,18 @@ module.exports.dislikeCard = (req, res) =>
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true }
   )
-    .then((card) => res.send(card))
+    .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
-      if (err instanceof CastError) {
+      if (err instanceof ValidationError) {
         return res
           .status(Status.NOT_FOUND)
+          .send({ message: "Произошла ошибка" });
+      }
+      if (err instanceof CastError) {
+        return res
+          .status(Status.BAD_REQUEST)
           .send({ message: "Карточка не найдена" });
       }
-      return res
-        .status(Status.BAD_REQUEST)
-        .send({ message: "Произошла ошибка" });
+
+      return res.status(Status.SERVER_ERROR);
     });
