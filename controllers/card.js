@@ -17,12 +17,12 @@ module.exports.getCardsByIdAndRemove = (req, res) => {
       if (err.message === "NotFound") {
         return res
           .status(Status.NOT_FOUND)
-          .send({ message: "Указан неверный ID" });
+          .send({ message: "ID не найден" });
       }
-      if (err instanceof DocumentNotFoundError) {
+      if (err instanceof CastError) {
         return res
-          .status(Status.NOT_FOUND)
-          .send({ message: "Карточка не найдена" });
+          .status(Status.BAD_REQUEST)
+          .send({ message: "Неккоректный ID" });
       }
     });
 };
