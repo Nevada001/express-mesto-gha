@@ -15,14 +15,16 @@ module.exports.getCardsByIdAndRemove = (req, res) => {
     .catch((err) => {
       if (err instanceof CastError) {
         return res
+        .status(Status.BAD_REQUEST)
+        .send({ message: "Некорректный ID" });
+    };
+    return res
           .status(Status.NOT_FOUND)
           .send({ message: "Карточка не найдена" });
-      }
-      return res
-        .status(Status.BAD_REQUEST)
-        .send({ message: "Произошла ошибка" });
-    });
-};
+      })
+
+
+}
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
