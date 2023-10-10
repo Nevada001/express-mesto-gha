@@ -1,6 +1,7 @@
 const Card = require("../models/card");
 const Status = require("../utils/statucCodes");
-const { ValidationError, CastError } = require("mongoose").Error;
+const { ValidationError, CastError, DocumentNotFoundError } =
+  require("mongoose").Error;
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(Status.OK_REQUEST).send(cards))
@@ -15,16 +16,16 @@ module.exports.getCardsByIdAndRemove = (req, res) => {
     .catch((err) => {
       if (err instanceof CastError) {
         return res
-        .status(Status.BAD_REQUEST)
-        .send({ message: "Некорректный ID" });
-    };
-    return res
+          .status(Status.BAD_REQUEST)
+          .send({ message: "Некорректный ID" });
+      }
+      if (err instanceof DocumentNotFoundError) {
+        return res
           .status(Status.NOT_FOUND)
           .send({ message: "Карточка не найдена" });
-      })
-
-
-}
+      }
+    });
+};
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
@@ -51,15 +52,15 @@ module.exports.likeCard = (req, res) =>
   )
     .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
-      if (err instanceof ValidationError) {
+      if (err instanceof DocumentNotFoundError) {
         return res
           .status(Status.NOT_FOUND)
-          .send({ message: "Произошла ошибка" });
+          .send({ message: "ID не существует" });
       }
       if (err instanceof CastError) {
         return res
           .status(Status.BAD_REQUEST)
-          .send({ message: "Карточка не найдена" });
+          .send({ message: "Некорректный ID" });
       }
 
       return res.status(Status.SERVER_ERROR);
@@ -73,16 +74,16 @@ module.exports.dislikeCard = (req, res) =>
   )
     .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
-      if (err instanceof ValidationError) {
-        return res
-          .status(Status.NOT_FOUND)
-          .send({ message: "Произошла ошибка" });
-      }
-      if (err instanceof CastError) {
-        return res
-          .status(Status.BAD_REQUEST)
-          .send({ message: "Карточка не найдена" });
-      }
+    if (err instanceof DocumentNotFoundError) {
+      return res
+        .status(Status.NOT_FOUND)
+        .send({ message: "ID не существует" });
+    }
+    if (err instanceof CastError) {
+      return res
+        .status(Status.BAD_REQUEST)
+        .send({ message: "Некорректный ID" });
+    }
 
-      return res.status(Status.SERVER_ERROR);
-    });
+    return res.status(Status.SERVER_ERROR);
+  });
