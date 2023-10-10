@@ -12,13 +12,13 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUsersById = (req, res) => {
   const { id } = req.params;
-  Users.findById(req.params.id)
+  Users.findById(req.params.id).orFail(new Error("NotFound"))
     .then((users) => res.send(users))
     .catch((err) => {
       if (err.message === "NotFound") {
         return res
           .status(Status.NOT_FOUND)
-          .send({ message: "Пользователь по id не найден" });
+          .send({ message: "Пользователь не найден" });
       }
       if (err instanceof CastError) {
         return res

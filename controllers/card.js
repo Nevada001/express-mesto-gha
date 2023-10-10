@@ -11,13 +11,13 @@ module.exports.getCards = (req, res) => {
 };
 
 module.exports.getCardsByIdAndRemove = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findByIdAndRemove(req.params.cardId).orFail(new Error('NotFound'))
     .then((cards) => res.status(Status.OK_REQUEST).send(cards))
     .catch((err) => {
-      if (err instanceof CastError) {
+      if (err.message === "NotFound") {
         return res
-          .status(Status.BAD_REQUEST)
-          .send({ message: "Некорректный ID" });
+          .status(Status.NOT_FOUND)
+          .send({ message: "Указан неверный ID" });
       }
       if (err instanceof DocumentNotFoundError) {
         return res
@@ -49,13 +49,13 @@ module.exports.likeCard = (req, res) =>
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true }
-  )
+  ).orFail(new Error('NotFound'))
     .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
-      if (err instanceof DocumentNotFoundError) {
+      if (err.message === "NotFound") {
         return res
           .status(Status.NOT_FOUND)
-          .send({ message: "ID не существует" });
+          .send({ message: "Указан неверный ID" });
       }
       if (err instanceof CastError) {
         return res
@@ -71,19 +71,19 @@ module.exports.dislikeCard = (req, res) =>
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true }
-  )
+  ).orFail(new Error('NotFound'))
     .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
-    if (err instanceof DocumentNotFoundError) {
-      return res
-        .status(Status.NOT_FOUND)
-        .send({ message: "ID не существует" });
-    }
-    if (err instanceof CastError) {
-      return res
-        .status(Status.BAD_REQUEST)
-        .send({ message: "Некорректный ID" });
-    }
+      if (err.message === "NotFound") {
+        return res
+          .status(Status.NOT_FOUND)
+          .send({ message: "Указан неверный ID" });
+      }
+      if (err instanceof CastError) {
+        return res
+          .status(Status.BAD_REQUEST)
+          .send({ message: "Некорректный ID" });
+      }
 
-    return res.status(Status.SERVER_ERROR);
-  });
+      return res.status(Status.SERVER_ERROR);
+    });
