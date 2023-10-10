@@ -15,9 +15,9 @@ app.use((req, res, next) => {
   next();
 });
 app.use(bodyParser.json())
-app.use('*', (req, res) => res.status(Status.NOT_FOUND).send({ message: 'Введенный ресурс не найден' }));
 app.use('/users', userRoutes)
 app.use('/cards', cardsRoutes)
+app.use('*', (req, res) => res.status(Status.NOT_FOUND).send({ message: 'Введенный ресурс не найден' }));
 
 app.listen(PORT, () => {
   console.log(`App listening on ${PORT}`)
