@@ -58,15 +58,15 @@ module.exports.createUser = (req, res, next) => {
         })
       )
       .catch((err) => {
+        if (err instanceof ValidationError) {
+          next(new BadRequestError("Ошибка валидации полей"));
+        }
         if (err.code === Status.MONGO_DUPLICATE) {
           next(
             new MongoDuplicateError(
-              "Пользователь с таким email уже зарегитстрирован"
+              "Пользователь с таким email уже зарегистрирован"
             )
           );
-        }
-        if (err instanceof ValidationError) {
-          next(new BadRequestError("Ошибка валидации полей"));
         }
         next(err);
       });
@@ -119,6 +119,6 @@ module.exports.login = (req, res) => {
       if (err.code === Status.UNAUTHORIZED) {
         next(new UnAuthorizedError("Неправильные почта или пароль"));
       }
-      next(err)
+      next(err);
     });
 };
