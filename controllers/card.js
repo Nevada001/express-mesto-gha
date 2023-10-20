@@ -7,8 +7,10 @@ const { ValidationError, CastError } = require("mongoose").Error;
 module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(Status.OK_REQUEST).send(cards))
-    .catch((err) => next(new BadRequestError("Произошла ошибка")));
-  next(err);
+    .catch((err) => {
+      next(new BadRequestError("Произошла ошибка"));
+      next(err);
+    });
 };
 
 module.exports.getCardsByIdAndRemove = (req, res, next) => {
