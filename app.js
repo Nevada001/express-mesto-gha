@@ -14,14 +14,14 @@ const { Joi, errors,  celebrate } = require('celebrate')
 
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
-
+const pattern = "/-._~:/?#[]@!$&'()*+,;=/";
 app.use(helmet())
 app.use(bodyParser.json())
 app.post('/signup',   celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30).default("Жак-Ив Кусто"),
     about: Joi.string().min(2).max(30).default("Исследователь"),
-    avatar: Joi.string().uri().default(
+    avatar: Joi.string().regex(pattern).default(
       "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png"
     ),
     email: Joi.string().required().email(),
