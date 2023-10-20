@@ -20,26 +20,28 @@ module.exports.getUsers = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.getCurrentUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
   Users.findById(req.user._id)
-    .orFail(new NotFoundError("Пользователь не найден"))
     .then((user) => {
       res.status(Status.OK_REQUEST).send(user);
     })
     .catch((err) => {
-      if (err instanceof CastError) {
-        throw new BadRequestError("Указан невалидный ID");
+      if (err.message === "Пользователь не найден") {
+        next(new NotFoundError("Нет такого пользователя"));
       }
-      return next(err);
+      if (err instanceof CastError) {
+        next(new BadRequestError("Указан невалидный ID"));
+      }
+      next(err);
     });
 };
-module.exports.getUsersById = (req, res) => {
+module.exports.getUsersById = (req, res, next) => {
   Users.findById(req.params.id)
     .orFail(new NotFoundError("Пользователь не найден"))
     .then((users) => res.send(users))
     .catch((err) => {
       if (err instanceof CastError) {
-        throw new BadRequestError("Указан невалидный ID");
+        next(new BadRequestError("Указан невалидный ID"));
       }
       return next(err);
     });
@@ -116,7 +118,7 @@ module.exports.login = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (err.code === Status.UNAUTHORIZED) {
+      if (err.message === "NotAutanticate") {
         next(new UnAuthorizedError("Неправильные почта или пароль"));
       }
       next(err);
