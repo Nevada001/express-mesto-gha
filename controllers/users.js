@@ -75,7 +75,7 @@ module.exports.createUser = (req, res, next) => {
   });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   Users.findByIdAndUpdate(
     req.user._id,
@@ -85,14 +85,15 @@ module.exports.updateUser = (req, res) => {
     .orFail(new NotFoundError("Пользователь не найден"))
     .then((users) => res.send({ data: users }))
     .catch((err) => {
+
       if (err instanceof ValidationError) {
-        next(new BadRequestError("Неверно введены данные"));
+        next(new BadRequestError("Ошибка валидации полей"));
       }
       next(err);
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   Users.findByIdAndUpdate(
     req.user._id,
@@ -103,7 +104,7 @@ module.exports.updateAvatar = (req, res) => {
     .then((users) => res.send(users))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        next(new BadRequestError("Неверно введены данные"));
+        next(new BadRequestError("Ошибка валидации полей"));
       }
       next(err);
     });
