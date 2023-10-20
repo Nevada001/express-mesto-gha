@@ -3,30 +3,32 @@ const ForbiddenError = require("../errors/forbiddenError");
 const NotFoundError = require("../errors/notFoundErr");
 const Card = require("../models/card");
 const Status = require("../utils/statusCodes");
-const { ValidationError, CastError } =
-  require("mongoose").Error;
-module.exports.getCards = (req, res, next ) => {
+const { ValidationError, CastError } = require("mongoose").Error;
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(Status.OK_REQUEST).send(cards))
-    .catch((err) =>
-    next(new BadRequestError('Произошла ошибка'))
-    )
-    next(err)
+    .catch((err) => next(new BadRequestError("Произошла ошибка")));
+  next(err);
 };
 
 module.exports.getCardsByIdAndRemove = (req, res, next) => {
-  Card.findById(req.params.cardId).orFail(new Error('NotFound'))
-    .then((cards) => { if (cards.owner.toString() !== req.user._id) {
-      throw new ForbiddenError('Вы не можете удалять чужие карточки')
-    }
-    return Card.findByIdAndRemove(req.params.cardId)
-  })
+  Card.findById(req.params.cardId)
+    .orFail(new Error("NotFound"))
+    .then((cards) => {
+      if (cards.owner.toString() !== req.user._id) {
+        throw new ForbiddenError("Вы не можете удалять чужие карточки");
+      }
+      return Card.findByIdAndRemove(req.params.cardId);
+    })
+    .then((deletedCard) => {
+      res.status(Status.OK_REQUEST).send(deletedCard);
+    })
     .catch((err) => {
       if (err.message === "NotFound") {
         next(new NotFoundError("ID не найден"));
       }
       if (err instanceof CastError) {
-       next(new BadRequestError("Неккоректный ID"));
+        next(new BadRequestError("Неккоректный ID"));
       }
       next(err);
     });
@@ -39,26 +41,33 @@ module.exports.createCard = (req, res, next) => {
     .then((cards) => res.status(Status.CREATED).send(cards))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        next(new BadRequestError("Указаны некорректные данные при создании карточки"))
-        };
-      next(err)
-});
-}
+        next(
+          new BadRequestError(
+            "Указаны некорректные данные при создании карточки"
+          )
+        );
+      }
+      next(err);
+    });
+};
 
 module.exports.likeCard = (req, res, next) =>
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true }
-  ).orFail(new Error('NotFound'))
+  )
+    .orFail(new Error("NotFound"))
     .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
       if (err.message === "NotFound") {
-        next(new NotFoundError("Указан неверный ID"))};
+        next(new NotFoundError("Указан неверный ID"));
+      }
 
       if (err instanceof CastError) {
-        next(new BadRequestError("Некорректный ID")) };
-      next(err)
+        next(new BadRequestError("Некорректный ID"));
+      }
+      next(err);
     });
 
 module.exports.dislikeCard = (req, res, next) =>
@@ -66,15 +75,15 @@ module.exports.dislikeCard = (req, res, next) =>
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true }
-  ).orFail(new Error('NotFound'))
+  )
+    .orFail(new Error("NotFound"))
     .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
       if (err.message === "NotFound") {
         next(new NotFoundError("Указан неверный ID"));
       }
       if (err instanceof CastError) {
-        next(new BadRequestError("Некорректный ID" ));
+        next(new BadRequestError("Некорректный ID"));
       }
-
-      return res.status(Status.SERVER_ERROR);
-    })
+      next(err);
+    });
