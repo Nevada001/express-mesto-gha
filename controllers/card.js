@@ -1,4 +1,5 @@
 const BadRequestError = require("../errors/badRequest");
+const ForbiddenError = require("../errors/forbiddenError");
 const NotFoundError = require("../errors/notFoundErr");
 const Card = require("../models/card");
 const Status = require("../utils/statusCodes");
@@ -14,8 +15,12 @@ module.exports.getCards = (req, res, next ) => {
 };
 
 module.exports.getCardsByIdAndRemove = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId).orFail(new Error('NotFound'))
-    .then((cards) => res.status(Status.OK_REQUEST).send(cards))
+  Card.findById(req.params.cardId).orFail(new Error('NotFound'))
+    .then((cards) => { if (cards.owner.toString() !== req.user._id) {
+      throw new ForbiddenError('Вы не можете удалять чужие карточки')
+    }
+    return Card.findByIdAndRemove(req.params.cardId)
+  })
     .catch((err) => {
       if (err.message === "NotFound") {
         next(new NotFoundError("ID не найден"));
