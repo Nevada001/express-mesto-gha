@@ -20,7 +20,7 @@ module.exports = (req, res, next) => {
   try {
     payload = jwt.verify(token, "super-secret");
   } catch (err) {
-    return handleAuthError(res);
+     handleAuthError(res);
   }
   req.user = payload;
   next();
