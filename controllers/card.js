@@ -1,48 +1,44 @@
+const BadRequestError = require("../errors/badRequest");
+const NotFoundError = require("../errors/notFoundErr");
 const Card = require("../models/card");
 const Status = require("../utils/statusCodes");
 const { ValidationError, CastError } =
   require("mongoose").Error;
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next ) => {
   Card.find({})
     .then((cards) => res.status(Status.OK_REQUEST).send(cards))
-    .catch(() =>
-      res.status(Status.BAD_REQUEST).send({ message: "Произошла ошибка" })
-    );
+    .catch((err) =>
+    next(new BadRequestError('Произошла ошибка'))
+    )
+    next(err)
 };
 
-module.exports.getCardsByIdAndRemove = (req, res) => {
+module.exports.getCardsByIdAndRemove = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId).orFail(new Error('NotFound'))
     .then((cards) => res.status(Status.OK_REQUEST).send(cards))
     .catch((err) => {
       if (err.message === "NotFound") {
-        return res
-          .status(Status.NOT_FOUND)
-          .send({ message: "ID не найден" });
+        next(new NotFoundError("ID не найден"));
       }
       if (err instanceof CastError) {
-        return res
-          .status(Status.BAD_REQUEST)
-          .send({ message: "Неккоректный ID" });
+       next(new BadRequestError("Неккоректный ID"));
       }
+      next(err);
     });
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((cards) => res.status(Status.CREATED).send(cards))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        return res.status(Status.BAD_REQUEST).send({
-          message: "Указаны некорректные данные при создании карточки",
-        });
-      }
-      return res
-        .status(Status.SERVER_ERROR)
-        .send({ message: "Ошибка на стороне сервера" });
-    });
-};
+        next(new BadRequestError("Указаны некорректные данные при создании карточки"))
+        };
+      next(err)
+});
+}
 
 module.exports.likeCard = (req, res) =>
   Card.findByIdAndUpdate(
@@ -53,17 +49,11 @@ module.exports.likeCard = (req, res) =>
     .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
       if (err.message === "NotFound") {
-        return res
-          .status(Status.NOT_FOUND)
-          .send({ message: "Указан неверный ID" });
-      }
-      if (err instanceof CastError) {
-        return res
-          .status(Status.BAD_REQUEST)
-          .send({ message: "Некорректный ID" });
-      }
+        next(new NotFoundError("Указан неверный ID"))};
 
-      return res.status(Status.SERVER_ERROR);
+      if (err instanceof CastError) {
+        next(new BadRequestError("Некорректный ID")) };
+      next(err)
     });
 
 module.exports.dislikeCard = (req, res) =>
@@ -75,15 +65,11 @@ module.exports.dislikeCard = (req, res) =>
     .then((card) => res.status(Status.OK_REQUEST).send(card))
     .catch((err) => {
       if (err.message === "NotFound") {
-        return res
-          .status(Status.NOT_FOUND)
-          .send({ message: "Указан неверный ID" });
+        next(new NotFoundError("Указан неверный ID"));
       }
       if (err instanceof CastError) {
-        return res
-          .status(Status.BAD_REQUEST)
-          .send({ message: "Некорректный ID" });
+        next(new BadRequestError("Некорректный ID" ));
       }
 
       return res.status(Status.SERVER_ERROR);
-    });
+    })
