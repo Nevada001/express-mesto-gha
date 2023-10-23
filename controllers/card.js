@@ -18,7 +18,7 @@ module.exports.getCardsByIdAndRemove = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(new Error('NotFound'))
     .then((cards) => {
-      if (cards.owner.toString() !== req.user._id) {
+      if (cards.owner !== req.user._id) {
         throw new ForbiddenError('Вы не можете удалять чужие карточки');
       }
       return Card.findByIdAndRemove(req.params.cardId);
@@ -26,12 +26,13 @@ module.exports.getCardsByIdAndRemove = (req, res, next) => {
     .then((deletedCard) => {
       res.status(Status.OK_REQUEST).send(deletedCard);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.message === 'NotFound') {
-        next(new NotFoundError('ID не найден'));
+        return next(new NotFoundError('ID не найден'));
       }
       if (err instanceof CastError) {
-        next(new BadRequestError('Неккоректный ID'));
+        return next(new BadRequestError('Неккоректный ID'));
       }
       next(err);
     });
