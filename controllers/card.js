@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const { ValidationError, CastError } = require('mongoose').Error;
 const BadRequestError = require('../errors/badRequest');
 const ForbiddenError = require('../errors/forbiddenError');
@@ -8,10 +9,7 @@ const Status = require('../utils/statusCodes');
 module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(Status.OK_REQUEST).send(cards))
-    .catch((err) => {
-      next(new BadRequestError('Произошла ошибка'));
-      next(err);
-    });
+    .catch(next);
 };
 
 module.exports.getCardsByIdAndRemove = (req, res, next) => {
@@ -26,15 +24,15 @@ module.exports.getCardsByIdAndRemove = (req, res, next) => {
     .then((deletedCard) => {
       res.status(Status.OK_REQUEST).send(deletedCard);
     })
-    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.message === 'NotFound') {
         return next(new NotFoundError('ID не найден'));
       }
-      if (err instanceof CastError) {
+      if
+      (err instanceof CastError) {
         return next(new BadRequestError('Неккоректный ID'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -43,15 +41,16 @@ module.exports.createCard = (req, res, next) => {
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((cards) => res.status(Status.CREATED).send(cards))
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err instanceof ValidationError) {
-        next(
+        return next(
           new BadRequestError(
             'Указаны некорректные данные при создании карточки',
           ),
         );
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -64,13 +63,13 @@ module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
   .then((card) => res.status(Status.OK_REQUEST).send(card))
   .catch((err) => {
     if (err.message === 'NotFound') {
-      next(new NotFoundError('Указан неверный ID'));
+      return next(new NotFoundError('Указан неверный ID'));
     }
 
     if (err instanceof CastError) {
-      next(new BadRequestError('Некорректный ID'));
+      return next(new BadRequestError('Некорректный ID'));
     }
-    next(err);
+    return next(err);
   });
 
 module.exports.dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
@@ -82,10 +81,10 @@ module.exports.dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
   .then((card) => res.status(Status.OK_REQUEST).send(card))
   .catch((err) => {
     if (err.message === 'NotFound') {
-      next(new NotFoundError('Указан неверный ID'));
+      return next(new NotFoundError('Указан неверный ID'));
     }
     if (err instanceof CastError) {
-      next(new BadRequestError('Некорректный ID'));
+      return next(new BadRequestError('Некорректный ID'));
     }
-    next(err);
+    return next(err);
   });

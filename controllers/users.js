@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const { ValidationError, CastError } = require('mongoose').Error;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -13,27 +14,21 @@ const saltRounds = 10;
 module.exports.getUsers = (req, res, next) => {
   Users.find({})
     .then((users) => {
-      if (!users) {
-        throw new BadRequestError('Произошла ошибка');
-      }
       res.send(users);
     })
     .catch(next);
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
-  Users.findById(req.user._id)
+  Users.findById(req.user._id).orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
       res.status(Status.OK_REQUEST).send(user);
     })
     .catch((err) => {
-      if (err.message === 'Пользователь не найден') {
-        next(new NotFoundError('Нет такого пользователя'));
-      }
       if (err instanceof CastError) {
-        next(new BadRequestError('Указан невалидный ID'));
+        return next(new BadRequestError('Указан невалидный ID'));
       }
-      next(err);
+      return next(err);
     });
 };
 module.exports.getUsersById = (req, res, next) => {
@@ -42,7 +37,7 @@ module.exports.getUsersById = (req, res, next) => {
     .then((users) => res.send(users))
     .catch((err) => {
       if (err instanceof CastError) {
-        next(new BadRequestError('Указан невалидный ID'));
+        return next(new BadRequestError('Указан невалидный ID'));
       }
       return next(err);
     });
@@ -64,16 +59,21 @@ module.exports.createUser = (req, res, next) => {
       }))
       .catch((err) => {
         if (err instanceof ValidationError) {
-          next(new BadRequestError('Ошибка валидации полей'));
+          return next(new BadRequestError('Ошибка валидации полей'));
         }
         if (err.code === Status.MONGO_DUPLICATE) {
-          next(
+          return next(
             new MongoDuplicateError(
               'Пользователь с таким email уже зарегистрирован',
             ),
           );
         }
-        next(err);
+      })
+      .catch((err) => {
+        if (err instanceof ValidationError) {
+          return next(new BadRequestError('Ошибка валидации полей'));
+        }
+        return next(err);
       });
   });
 };
@@ -89,9 +89,9 @@ module.exports.updateUser = (req, res, next) => {
     .then((users) => res.send({ data: users }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        next(new BadRequestError('Ошибка валидации полей'));
+        return next(new BadRequestError('Ошибка валидации полей'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -106,9 +106,9 @@ module.exports.updateAvatar = (req, res, next) => {
     .then((users) => res.send(users))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        next(new BadRequestError('Ошибка валидации полей'));
+        return next(new BadRequestError('Ошибка валидации полей'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -122,8 +122,8 @@ module.exports.login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === 'NotAutanticate') {
-        next(new UnAuthorizedError('Неправильные почта или пароль'));
+        return next(new UnAuthorizedError('Неправильные почта или пароль'));
       }
-      next(err);
+      return next(err);
     });
 };
