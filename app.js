@@ -50,9 +50,7 @@ app.post(
 app.use('/users', auth, userRoutes);
 app.use('/cards', auth, cardsRoutes);
 
-app.use('*', auth, (req, res, next) => { throw new NotFoundError('Введенный ресурс не найден.')
-.catch(next);
-});
+app.use('*', auth, (req, res, next) => next(new NotFoundError('Введенный ресурс не найден.')));
 
 app.use(errors());
 app.use((err, req, res) => {
