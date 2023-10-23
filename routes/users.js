@@ -24,10 +24,17 @@ userRoutes.patch(
     body: Joi.object().keys({
       name: Joi.string().min(2).max(30).default("Жак-Ив Кусто"),
       about: Joi.string().min(2).max(30).default("Исследователь"),
-      avatar: Joi.string().uri(),
     }),
   }),
   updateUser
 );
-userRoutes.patch("/me/avatar", updateAvatar);
+userRoutes.patch(
+  "/me/avatar",
+  celebrate({
+    body: Joi.object().keys({
+      avatar: Joi.string().pattern(new RegExp("https?://[a-zA-Z0-9]+.[^s]{2,}")),
+    }),
+  }),
+  updateAvatar
+);
 module.exports = userRoutes;
