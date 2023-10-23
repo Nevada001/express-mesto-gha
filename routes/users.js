@@ -33,7 +33,7 @@ userRoutes.patch(
   '/me/avatar',
   celebrate({
     body: Joi.object().keys({
-      avatar: Joi.string().regex(/https?:\/\/[a-zA-Z0-9]+.[^s]{2,}'/),
+      avatar: Joi.string().regex(/https?:\/\/[a-zA-Z0-9]+.[^s]{2,}/),
     }),
   }),
   updateAvatar,

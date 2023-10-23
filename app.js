@@ -27,7 +27,7 @@ app.post(
       name: Joi.string().min(2).max(30).default('Жак-Ив Кусто'),
       about: Joi.string().min(2).max(30).default('Исследователь'),
       avatar: Joi.string()
-        .regex(/'https?:\/\/[a-zA-Z0-9]+\.[^\s]{2,}'/)
+        .regex(/https?:\/\/[a-zA-Z0-9]+\.[^\s]{2,}/)
         .default(
           'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
         ),
@@ -49,7 +49,11 @@ app.post(
 );
 app.use('/users', auth, userRoutes);
 app.use('/cards', auth, cardsRoutes);
-app.use('*', auth, (req, res, next) => next(new NotFoundError('Введенный ресурс не найден')));
+
+app.use('*', auth, (req, res, next) => { throw new NotFoundError('Введенный ресурс не найден.')
+.catch(next);
+});
+
 app.use(errors());
 app.use((err, req, res) => {
   const { statusCode = 500, message } = err;
