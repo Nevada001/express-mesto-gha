@@ -15,11 +15,12 @@ const cardSchema = mongoose.Schema({
       validator: validator.isURL,
       message: 'Неверный формат ссылки',
     },
-    owner: {
-      type: mongoose.Schema.Types.ObjectID,
-      required: true,
-    },
   },
+  owner: {
+    type: mongoose.Schema.Types.ObjectID,
+    required: true,
+  },
+
   likes: {
     type: [mongoose.Schema.Types.ObjectId],
     default: [],

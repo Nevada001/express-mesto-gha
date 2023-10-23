@@ -17,8 +17,8 @@ module.exports.getCards = (req, res, next) => {
 module.exports.getCardsByIdAndRemove = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(new Error('NotFound'))
-    .then((cards) => {
-      if (cards.owner !== req.user._id) {
+    .then((card) => {
+      if (card.owner.toString() !== req.user._id) {
         throw new ForbiddenError('Вы не можете удалять чужие карточки');
       }
       return Card.findByIdAndRemove(req.params.cardId);
