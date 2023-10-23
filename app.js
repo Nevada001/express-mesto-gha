@@ -23,7 +23,7 @@ app.post(
       name: Joi.string().min(2).max(30).default("Жак-Ив Кусто"),
       about: Joi.string().min(2).max(30).default("Исследователь"),
       avatar: Joi.string()
-        .uri()
+        .pattern(new RegExp('https?:\/\/[a-zA-Z0-9]+\.[^\s]{2,}'))
         .default(
           "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png"
         ),
