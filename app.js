@@ -1,59 +1,61 @@
-const express = require("express");
-const Status = require("./utils/statusCodes");
-const bodyParser = require("body-parser");
+const express = require('express');
+const mongoose = require('mongoose');
+const helmet = require('helmet');
+const bodyParser = require('body-parser');
+const { Joi, errors, celebrate } = require('celebrate');
+
 const { PORT = 3000 } = process.env;
-const userRoutes = require("./routes/users");
+const userRoutes = require('./routes/users');
+
 const app = express();
-const mongoose = require("mongoose");
-const cardsRoutes = require("./routes/cards");
-const helmet = require("helmet");
-const { createUser, login } = require("./controllers/users");
-const auth = require("./middlewares/auth");
 
-const { Joi, errors, celebrate } = require("celebrate");
+const cardsRoutes = require('./routes/cards');
 
-mongoose.connect("mongodb://127.0.0.1:27017/mestodb");
+const { createUser, login } = require('./controllers/users');
+const auth = require('./middlewares/auth');
+
+const NotFoundError = require('./errors/notFoundErr');
+
+mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
 app.use(helmet());
 app.use(bodyParser.json());
 app.post(
-  "/signup",
+  '/signup',
   celebrate({
     body: Joi.object().keys({
-      name: Joi.string().min(2).max(30).default("Жак-Ив Кусто"),
-      about: Joi.string().min(2).max(30).default("Исследователь"),
+      name: Joi.string().min(2).max(30).default('Жак-Ив Кусто'),
+      about: Joi.string().min(2).max(30).default('Исследователь'),
       avatar: Joi.string()
-        .pattern(new RegExp('https?:\/\/[a-zA-Z0-9]+\.[^\s]{2,}'))
+        .regex(/'https?:\/\/[a-zA-Z0-9]+\.[^\s]{2,}'/)
         .default(
-          "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png"
+          'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
         ),
       email: Joi.string().required().email(),
       password: Joi.string().required().min(3),
     }),
   }),
-  createUser
+  createUser,
 );
 app.post(
-  "/signin",
+  '/signin',
   celebrate({
     body: Joi.object().keys({
       email: Joi.string().required().email(),
       password: Joi.string().required(),
     }),
   }),
-  login
+  login,
 );
-app.use("/users", auth, userRoutes);
-app.use("/cards", auth, cardsRoutes);
-app.use("*", (req, res) =>
-  res.status(Status.NOT_FOUND).send({ message: "Введенный ресурс не найден" })
-);
+app.use('/users', auth, userRoutes);
+app.use('/cards', auth, cardsRoutes);
+app.use('*', auth, (req, res, next) => next(new NotFoundError('Введенный ресурс не найден')));
 app.use(errors());
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode).send({
     // проверяем статус и выставляем сообщение в зависимости от него
-    message: statusCode === 500 ? "На сервере произошла ошибка" : message,
+    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
   });
 });
 app.listen(PORT, () => {
