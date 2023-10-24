@@ -1,3 +1,7 @@
+/* eslint-disable arrow-body-style */
+/* eslint-disable block-spacing */
+/* eslint-disable brace-style */
+/* eslint-disable no-else-return */
 /* eslint-disable consistent-return */
 const { ValidationError, CastError } = require('mongoose').Error;
 const jwt = require('jsonwebtoken');
@@ -20,7 +24,8 @@ module.exports.getUsers = (req, res, next) => {
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
-  Users.findById(req.user._id).orFail(new NotFoundError('Пользователь не найден'))
+  Users.findById(req.user._id)
+    .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
       res.status(Status.OK_REQUEST).send(user);
     })
@@ -49,7 +54,11 @@ module.exports.createUser = (req, res, next) => {
   } = req.body;
   bcrypt.hash(password, saltRounds).then((hash) => {
     Users.create({
-      password: hash, name, about, avatar, email,
+      password: hash,
+      name,
+      about,
+      avatar,
+      email,
     })
       .then((users) => res.status(Status.CREATED).send({
         name: users.name,
@@ -67,12 +76,11 @@ module.exports.createUser = (req, res, next) => {
               'Пользователь с таким email уже зарегистрирован',
             ),
           );
+        } else {
+          next(err);
         }
       })
       .catch((err) => {
-        if (err instanceof ValidationError) {
-          return next(new BadRequestError('Ошибка валидации полей'));
-        }
         return next(err);
       });
   });
