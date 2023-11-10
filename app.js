@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 const { Joi, errors, celebrate } = require('celebrate');
 
 const { PORT = 3000 } = process.env;
@@ -20,7 +22,9 @@ const NotFoundError = require('./errors/notFoundErr');
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
 app.use(helmet());
+app.use(cors());
 app.use(bodyParser.json());
+app.use(requestLogger);
 app.post(
   '/signup',
   celebrate({
@@ -52,7 +56,7 @@ app.use('/users', auth, userRoutes);
 app.use('/cards', auth, cardsRoutes);
 
 app.use('*', auth, (req, res, next) => next(new NotFoundError('Введенный ресурс не найден.')));
-
+app.use(errorLogger);
 app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;

@@ -94,7 +94,7 @@ module.exports.updateUser = (req, res, next) => {
     { new: true, runValidators: true },
   )
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((users) => res.send({ data: users }))
+    .then((users) => res.send(users))
     .catch((err) => {
       if (err instanceof ValidationError) {
         return next(new BadRequestError('Ошибка валидации полей'));
